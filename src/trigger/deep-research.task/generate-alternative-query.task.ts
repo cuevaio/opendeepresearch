@@ -18,7 +18,7 @@ export const generateAlternativeQuery = schemaTask({
 	async run({ originalQuery }) {
 		const { object } = await generateObject({
 			model: openai("gpt-4.1"),
-			prompt: `Generate an alternative search query based on the original query we could not find relevant information for.
+			prompt: `Current date: ${new Date().toISOString()}. Generate an alternative search query based on the original query we could not find relevant information for.
 			The alternative query should be more specific or use different terms to find relevant information.
 
 			Original query: ${originalQuery}
