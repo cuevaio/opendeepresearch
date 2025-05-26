@@ -147,17 +147,36 @@ export default function Home() {
 
 					<button
 						type="submit"
+						disabled={isPending}
 						className="w-full border-2 border-[#00ff00] bg-black p-2 text-[#00ff00] transition-all hover:bg-[#00ff00] hover:text-black active:translate-y-0.5"
 					>
-						[SUBMIT]
+						{isPending ? "[SUBMITTING...]" : "[SUBMIT]"}
 					</button>
 				</form>
 
 				<RecentResearches />
 
 				<div className="mt-8 text-center text-[#00ff00]/60 text-xs">
-					<p>© 2024 OPEN DEEP RESEARCH</p>
-					<p className="mt-1">[SYSTEM READY]</p>
+					<div className="flex items-center justify-center space-x-2">
+						<p className="">[SYSTEM READY]</p>
+						<a
+							href="https://cueva.io"
+							target="_blank"
+							rel="noreferrer"
+							className="hover:underline"
+						>
+							© 2025 Anthony Cueva
+						</a>
+						<span className="mx-2">|</span>
+						<a
+							href="https://github.com/cuevaio/opendeepresearch"
+							target="_blank"
+							rel="noreferrer"
+							className="hover:underline"
+						>
+							GitHub
+						</a>
+					</div>
 				</div>
 			</main>
 		</div>
