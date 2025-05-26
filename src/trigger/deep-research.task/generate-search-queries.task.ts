@@ -13,7 +13,7 @@ export const generateSearchQueries = schemaTask({
 		const {
 			object: { queries },
 		} = await generateObject({
-			model: openai("gpt-4o"),
+			model: openai("gpt-4.1"),
 			prompt: `Generate ${n} search queries for the following query: ${query}`,
 			schema: z.object({
 				queries: z.array(z.string()).min(1).max(5),

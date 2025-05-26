@@ -36,6 +36,7 @@ export async function triggerDeepResearchAction(
 			prompt,
 			email,
 		});
+
 		if (run) {
 			return {
 				ok: true,

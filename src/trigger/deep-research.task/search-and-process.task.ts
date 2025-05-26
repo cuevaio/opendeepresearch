@@ -1,10 +1,10 @@
 import { openai } from "@ai-sdk/openai";
-import { logger, metadata, schemaTask } from "@trigger.dev/sdk/v3";
+import { schemaTask } from "@trigger.dev/sdk/v3";
 import { generateObject, generateText, tool } from "ai";
 import { z } from "zod";
 
 import { searchWeb } from "./search-web.task";
-import { type RunStatus, type SearchResult, SearchResultSchema } from "./types";
+import { type SearchResult, SearchResultSchema } from "./types";
 
 export const searchAndProcess = schemaTask({
 	id: "search-and-process",
@@ -16,21 +16,8 @@ export const searchAndProcess = schemaTask({
 		const pendingSearchResults: SearchResult[] = [];
 		const finalSearchResults: SearchResult[] = [];
 
-		function updateStatus(status: RunStatus) {
-			logger.info(`Updating status: ${JSON.stringify(status)}`);
-
-			metadata.root.append("status_root", status);
-			metadata.parent.append("status_parent", status);
-			metadata.append("status", status);
-		}
-
-		updateStatus({
-			type: "searching-web",
-			query,
-		});
-
 		await generateText({
-			model: openai("gpt-4o"),
+			model: openai("gpt-4.1"),
 			prompt: `Search the web for information about ${query}`,
 			system:
 				"You are a researcher. For each query, search the web and then evaluate if the results are relevant and will help answer the following query",
@@ -42,25 +29,15 @@ export const searchAndProcess = schemaTask({
 						query: z.string().min(1),
 					}),
 					async execute({ query }) {
-						updateStatus({
-							type: "searching-web",
-							query,
-						});
 						const result = await searchWeb.triggerAndWait({ query });
 
 						if (result.ok) {
-							updateStatus({
-								type: "search-result",
-								searchResult: {
-									title: result.output.title,
-									url: result.output.url,
-									faviconUrl: result.output.faviconUrl,
-								},
-							});
+							if (result.output) {
+								pendingSearchResults.push(result.output);
 
-							pendingSearchResults.push(result.output);
-
-							return result.output;
+								return result.output;
+							}
+							return "No search results found.";
 						}
 						return "No search results found.";
 					},
@@ -74,7 +51,7 @@ export const searchAndProcess = schemaTask({
 							return "No more search results to evaluate.";
 						}
 						const { object: evaluation } = await generateObject({
-							model: openai("gpt-4o"),
+							model: openai("gpt-4.1"),
 							prompt: `Evaluate whether the search results are relevant and will help answer the following query: ${query}. If the page already exists in the existing results, mark it as irrelevant.
 
             <search_results>
@@ -94,15 +71,6 @@ export const searchAndProcess = schemaTask({
 							return "Search results are relevant. End research for this query.";
 						}
 
-						updateStatus({
-							type: "irrelevant-search-result",
-							searchResult: {
-								title: pendingResult.title,
-								url: pendingResult.url,
-								faviconUrl: pendingResult.faviconUrl,
-							},
-						});
-
 						return "Search results are irrelevant. Please search again with a more specific query.";
 					},
 				}),
@@ -112,6 +80,6 @@ export const searchAndProcess = schemaTask({
 				functionId: "search-and-process",
 			},
 		});
-		return finalSearchResults;
+		return finalSearchResults.length > 0 ? finalSearchResults[0] : null;
 	},
 });

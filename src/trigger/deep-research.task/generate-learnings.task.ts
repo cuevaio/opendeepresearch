@@ -13,7 +13,7 @@ export const generateLearnings = schemaTask({
 	}),
 	async run({ query, searchResult, breadth }) {
 		const { object } = await generateObject({
-			model: openai("gpt-4o"),
+			model: openai("gpt-4.1"),
 			prompt: `The user is researching "${query}". The following search result were deemed relevant.
     Generate a learning and ${breadth} follow-up questions from the following search result:
 

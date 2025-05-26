@@ -29,14 +29,27 @@ export type RunStatus =
 			query: string;
 	  }
 	| {
-			type: "search-result";
-			searchResult: Omit<SearchResult, "content">;
-	  }
-	| {
-			type: "irrelevant-search-result";
-			searchResult: Omit<SearchResult, "content">;
+			type: "search-results";
+			title: string | null;
+			url: string;
+			faviconUrl: string | null;
 	  }
 	| {
 			type: "learning";
 			learning: string;
+	  }
+	| {
+			type: "research-completed";
+	  }
+	| {
+			type: "starting-report-generation";
+	  }
+	| {
+			type: "report-generated";
+	  }
+	| {
+			type: "sending-report";
+	  }
+	| {
+			type: "report-sent";
 	  };

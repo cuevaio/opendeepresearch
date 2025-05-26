@@ -6,6 +6,64 @@ import { useRouter } from "next/navigation";
 
 import { triggerDeepResearchAction } from "@/actions";
 
+const RecentResearches = () => {
+	const [recentResearches, setRecentResearches] = React.useState<
+		Array<{
+			runId: string;
+			email: string;
+			prompt: string;
+			date: string;
+		}>
+	>([]);
+
+	React.useEffect(() => {
+		const researches = [];
+		for (let i = 0; i < localStorage.length; i++) {
+			const key = localStorage.key(i);
+			if (key?.startsWith("run:")) {
+				const runId = key.split(":")[1];
+				const data = JSON.parse(localStorage.getItem(key) || "{}");
+				researches.push({
+					runId,
+					...data,
+				});
+			}
+		}
+		setRecentResearches(
+			researches.sort(
+				(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+			),
+		);
+	}, []);
+
+	if (recentResearches.length === 0) return null;
+
+	return (
+		<div className="mt-8 space-y-4">
+			<h2 className="font-bold text-[#00ff00] text-lg">[RECENT RESEARCHES]</h2>
+			<div className="space-y-2">
+				{recentResearches.map((research) => (
+					<a
+						key={research.runId}
+						href={`/r/${research.runId}`}
+						className="block border-2 border-[#00ff00]/30 p-4 transition-colors hover:border-[#00ff00]"
+					>
+						<div className="flex items-start justify-between">
+							<div className="space-y-1">
+								<p className="line-clamp-2 text-[#00ff00]">{research.prompt}</p>
+								<p className="text-[#00ff00]/60 text-sm">{research.email}</p>
+							</div>
+							<span className="text-[#00ff00]/40 text-xs">
+								{new Date(research.date).toLocaleDateString()}
+							</span>
+						</div>
+					</a>
+				))}
+			</div>
+		</div>
+	);
+};
+
 export default function Home() {
 	const [state, formAction, isPending] = React.useActionState(
 		triggerDeepResearchAction,
@@ -17,10 +75,15 @@ export default function Home() {
 		if (!isPending) {
 			if (state) {
 				if (state.ok) {
-					router.push(`/r/${state.data.runId}`);
+					router.push(`/r/${state.data.runId.split("_")[1]}`);
 					localStorage.setItem(
-						`publicAccessToken:${state.data.runId}`,
-						state.data.publicAccessToken,
+						`run:${state.data.runId.split("_")[1]}`,
+						JSON.stringify({
+							email: state.email,
+							prompt: state.prompt,
+							publicAccessToken: state.data.publicAccessToken,
+							date: new Date().toISOString(),
+						}),
 					);
 				} else {
 					console.error(state.error);
@@ -89,6 +152,8 @@ export default function Home() {
 						[SUBMIT]
 					</button>
 				</form>
+
+				<RecentResearches />
 
 				<div className="mt-8 text-center text-[#00ff00]/60 text-xs">
 					<p>© 2024 OPEN DEEP RESEARCH</p>

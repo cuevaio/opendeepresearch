@@ -197,7 +197,7 @@ const SYSTEM_PROMPT = `You are an expert researcher. Today is ${new Date().toISO
 
 const generateReport = async (research: Research) => {
 	const { text } = await generateText({
-		model: openai("o3-mini"),
+		model: openai("o4-mini"),
 		system: SYSTEM_PROMPT,
 		prompt: `Generate a report based on the following research data:
       ${JSON.stringify(research, null, 2)}`,

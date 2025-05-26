@@ -15,6 +15,10 @@ export const searchWeb = schemaTask({
 			numResults: 1,
 		});
 
+		if (results.length < 1) {
+			return null;
+		}
+
 		return {
 			title: results[0].title,
 			url: results[0].url,

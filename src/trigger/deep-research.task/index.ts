@@ -7,7 +7,14 @@ import { generateSearchQueries } from "./generate-search-queries.task";
 import { searchAndProcess } from "./search-and-process.task";
 import { sendReport } from "./send-report.task";
 
-import type { Research } from "./types";
+import type { Research, RunStatus } from "./types";
+
+function updateStatus(status: RunStatus) {
+	metadata.append("status", {
+		...status,
+		date: new Date().toISOString(),
+	});
+}
 
 export const deepResearch = schemaTask({
 	id: "deep-research",
@@ -48,49 +55,80 @@ export const deepResearch = schemaTask({
 
 			for (const query of queries) {
 				logger.info("Searching the web", { query });
+				updateStatus({
+					type: "searching-web",
+					query,
+				});
 				const searchResults = await searchAndProcess.triggerAndWait({
 					query,
 					accumulatedSources: accumulatedResearch.searchResults,
 				});
+
 				if (!searchResults.ok) {
 					throw new Error("Failed to search the web");
 				}
-				accumulatedResearch.searchResults.push(...searchResults.output);
-				for (const searchResult of searchResults.output) {
-					logger.info("Processing search result", { url: searchResult.url });
-					const learningsResult = await generateLearnings.triggerAndWait({
-						query,
-						searchResult,
-						breadth,
-					});
-					if (!learningsResult.ok) {
-						throw new Error("Failed to generate learnings");
-					}
-					metadata.append("status", {
-						type: "learning",
-						learning: learningsResult.output.learning,
-					});
-					accumulatedResearch.learnings.push(learningsResult.output);
-					accumulatedResearch.completedQueries.push(query);
 
-					const newQuery = `Overall research goal: ${prompt}
+				if (!searchResults.output) {
+					logger.info("No search results found", { query });
+					continue;
+				}
+
+				updateStatus({
+					type: "search-results",
+					title: searchResults.output.title,
+					url: searchResults.output.url,
+					faviconUrl: searchResults.output.faviconUrl,
+				});
+
+				accumulatedResearch.searchResults.push(searchResults.output);
+				logger.info("Processing search result", {
+					url: searchResults.output.url,
+				});
+				const learningsResult = await generateLearnings.triggerAndWait({
+					query,
+					searchResult: searchResults.output,
+					breadth,
+				});
+				if (!learningsResult.ok) {
+					throw new Error("Failed to generate learnings");
+				}
+
+				updateStatus({
+					type: "learning",
+					learning: learningsResult.output.learning,
+				});
+				accumulatedResearch.learnings.push(learningsResult.output);
+				accumulatedResearch.completedQueries.push(query);
+
+				const newQuery = `Overall research goal: ${prompt}
         Previous search queries: ${accumulatedResearch.completedQueries.join(", ")}
 
         Follow-up questions: ${learningsResult.output.followUpQuestions.join(", ")}
         `;
-					await doDeepResearch(newQuery, depth - 1, Math.ceil(breadth / 2));
-				}
+				await doDeepResearch(newQuery, depth - 1, Math.ceil(breadth / 2));
 			}
 			return accumulatedResearch;
 		};
 
 		const research = await doDeepResearch(prompt, depth, breadth);
 
+		updateStatus({
+			type: "research-completed",
+		});
+
 		logger.info("Research completed!");
+
+		updateStatus({
+			type: "starting-report-generation",
+		});
 
 		logger.info("Generating report");
 		const reportResult = await generateReport.triggerAndWait({ research });
 		logger.info("Report generated");
+
+		updateStatus({
+			type: "report-generated",
+		});
 
 		if (!reportResult.ok) {
 			throw new Error("Failed to generate report");
@@ -99,11 +137,17 @@ export const deepResearch = schemaTask({
 		const report = reportResult.output;
 
 		logger.info("Sending report", { email });
+		updateStatus({
+			type: "sending-report",
+		});
 		await sendReport.triggerAndWait({
 			query: prompt,
 			report,
 			email,
 		});
 		logger.info("Report sent", { email });
+		updateStatus({
+			type: "report-sent",
+		});
 	},
 });

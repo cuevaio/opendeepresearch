@@ -26,7 +26,7 @@ export const generateReport = schemaTask({
 	}),
 	async run({ research }) {
 		const { text } = await generateText({
-			model: openai("o3-mini"),
+			model: openai("o4-mini"),
 			system: SYSTEM_PROMPT,
 			prompt: `Generate a report based on the following research data:
       ${JSON.stringify(research, null, 2)}`,
