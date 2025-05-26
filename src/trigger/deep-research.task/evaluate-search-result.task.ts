@@ -20,9 +20,9 @@ export const evaluateSearchResult = schemaTask({
 		randomize: false,
 	},
 	async run({ query, searchResult, accumulatedSources }) {
-		const { object: evaluation } = await generateObject({
+		const { object } = await generateObject({
 			model: openai("gpt-4.1"),
-			prompt: `Evaluate whether the search result is relevant and will help answer the following query: ${query}. If the page already exists in the existing results, mark it as irrelevant.
+			prompt: `Evaluate whether the search result is relevant and will help answer the following query: ${query}. If the page already exists in the existing results, mark it as irrelevant. If the result is not relevant, provide an alternative query that might be more relevant.
 
 			<search_result>
 			${JSON.stringify(searchResult)}
@@ -32,10 +32,12 @@ export const evaluateSearchResult = schemaTask({
 			${JSON.stringify(accumulatedSources.map((result) => result.url))}
 			</existing_results>
 			`,
-			output: "enum",
-			enum: ["relevant", "irrelevant"],
+			schema: z.object({
+				relevant: z.boolean(),
+				alternative_query: z.string().optional(),
+			}),
 		});
 
-		return evaluation === "relevant";
+		return object;
 	},
 });
