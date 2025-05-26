@@ -27,8 +27,8 @@ export const generateReport = schemaTask({
 	retry: {
 		maxAttempts: 3,
 		factor: 1.8,
-		minTimeoutInMs: 500,
-		maxTimeoutInMs: 30_000,
+		minTimeoutInMs: 15_000,
+		maxTimeoutInMs: 60_000,
 		randomize: false,
 	},
 	async run({ research }) {
