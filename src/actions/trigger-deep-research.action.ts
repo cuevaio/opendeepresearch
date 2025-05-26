@@ -5,7 +5,7 @@ import { z } from "zod";
 
 type TriggerDeepResearchActionState = {
 	prompt: string;
-	email: string;
+	emails: string;
 } & (
 	| {
 			ok: false;
@@ -25,16 +25,21 @@ export async function triggerDeepResearchAction(
 	formData: FormData,
 ): Promise<TriggerDeepResearchActionState> {
 	try {
-		const { email, prompt } = z
+		const { emails, prompt } = z
 			.object({
-				email: z.string().email(),
+				emails: z.string().email().array(),
 				prompt: z.string().min(10),
 			})
-			.parse({ email: formData.get("email"), prompt: formData.get("prompt") });
+			.parse({
+				emails: ((formData.get("emails") as string) || "")
+					.split(",")
+					.map((email) => email.trim()),
+				prompt: formData.get("prompt"),
+			});
 
 		const run = await deepResearch.trigger({
 			prompt,
-			email,
+			emails,
 		});
 
 		if (run) {
@@ -45,7 +50,7 @@ export async function triggerDeepResearchAction(
 					publicAccessToken: run.publicAccessToken,
 				},
 				prompt,
-				email,
+				emails: emails.join(", "),
 			};
 		}
 		throw new Error("No public access token");
@@ -55,7 +60,7 @@ export async function triggerDeepResearchAction(
 			error:
 				error instanceof Error ? error.message : "An unknown error occurred",
 			prompt: (formData.get("prompt") as string) ?? undefined,
-			email: (formData.get("email") as string) ?? undefined,
+			emails: (formData.get("emails") as string) ?? undefined,
 		};
 	}
 }

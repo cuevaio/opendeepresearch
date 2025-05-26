@@ -20,11 +20,11 @@ export const deepResearch = schemaTask({
 	id: "deep-research",
 	schema: z.object({
 		prompt: z.string(),
-		email: z.string().optional().default("hi@cueva.io"),
+		emails: z.array(z.string().email()).optional().default(["hi@cueva.io"]),
 		depth: z.number().optional().default(2),
 		breadth: z.number().optional().default(3),
 	}),
-	async run({ prompt, depth, breadth, email }) {
+	async run({ prompt, depth, breadth, emails }) {
 		const accumulatedResearch: Research = {
 			query: undefined,
 			queries: [],
@@ -136,16 +136,16 @@ export const deepResearch = schemaTask({
 
 		const report = reportResult.output;
 
-		logger.info("Sending report", { email });
+		logger.info("Sending report", { emails });
 		updateStatus({
 			type: "sending-report",
 		});
 		await sendReport.triggerAndWait({
 			query: prompt,
 			report,
-			email,
+			emails,
 		});
-		logger.info("Report sent", { email });
+		logger.info("Report sent", { emails });
 		updateStatus({
 			type: "report-sent",
 		});

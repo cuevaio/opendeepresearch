@@ -79,7 +79,7 @@ export default function Home() {
 					localStorage.setItem(
 						`run:${state.data.runId.split("_")[1]}`,
 						JSON.stringify({
-							email: state.email,
+							emails: state.emails,
 							prompt: state.prompt,
 							publicAccessToken: state.data.publicAccessToken,
 							date: new Date().toISOString(),
@@ -127,17 +127,17 @@ export default function Home() {
 
 						<div>
 							<label
-								htmlFor="email"
+								htmlFor="emails"
 								className="mb-2 block text-[#00ff00] text-sm"
 							>
-								[EMAIL]
+								[RECIPIENTS EMAILS (SEPARATED BY COMMAS)]
 							</label>
 							<input
-								id="email"
-								name="email"
-								type="email"
+								id="emails"
+								name="emails"
+								type="text"
 								autoComplete="email"
-								defaultValue={state?.email}
+								defaultValue={state?.emails}
 								required
 								className="w-full border-2 border-[#00ff00] bg-black p-2 text-[#00ff00] placeholder-[#00ff00]/50 focus:outline-none focus:ring-1 focus:ring-[#00ff00]"
 								placeholder=">_"

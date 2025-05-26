@@ -10,12 +10,12 @@ export const sendReport = schemaTask({
 	schema: z.object({
 		query: z.string(),
 		report: z.string(),
-		email: z.string(),
+		emails: z.array(z.string().email()),
 	}),
-	async run({ query, report, email }) {
+	async run({ query, report, emails }) {
 		const { error } = await resend.emails.send({
 			from: "Open Deep Research <hello@reports.opendeepresearch.io>",
-			to: email,
+			to: emails,
 			subject: `Open Deep Research Report for ${query}`,
 			html: await render(<ReportEmailTemplate report={report} />),
 		});
