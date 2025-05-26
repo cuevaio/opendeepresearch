@@ -24,6 +24,13 @@ export const generateReport = schemaTask({
 	schema: z.object({
 		research: ResearchSchema,
 	}),
+	retry: {
+		maxAttempts: 3,
+		factor: 1.8,
+		minTimeoutInMs: 500,
+		maxTimeoutInMs: 30_000,
+		randomize: false,
+	},
 	async run({ research }) {
 		const { text } = await generateText({
 			model: openai("o4-mini"),

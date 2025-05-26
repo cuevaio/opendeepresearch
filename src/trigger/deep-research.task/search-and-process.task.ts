@@ -12,6 +12,13 @@ export const searchAndProcess = schemaTask({
 		query: z.string(),
 		accumulatedSources: z.array(SearchResultSchema),
 	}),
+	retry: {
+		maxAttempts: 3,
+		factor: 1.8,
+		minTimeoutInMs: 500,
+		maxTimeoutInMs: 30_000,
+		randomize: false,
+	},
 	async run({ query, accumulatedSources }) {
 		const pendingSearchResults: SearchResult[] = [];
 		const finalSearchResults: SearchResult[] = [];

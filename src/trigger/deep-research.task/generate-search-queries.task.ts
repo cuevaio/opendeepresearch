@@ -9,6 +9,13 @@ export const generateSearchQueries = schemaTask({
 		query: z.string(),
 		n: z.number().min(1).max(5),
 	}),
+	retry: {
+		maxAttempts: 3,
+		factor: 1.8,
+		minTimeoutInMs: 500,
+		maxTimeoutInMs: 30_000,
+		randomize: false,
+	},
 	async run({ query, n }) {
 		const {
 			object: { queries },

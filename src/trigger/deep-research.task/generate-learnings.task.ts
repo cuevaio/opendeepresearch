@@ -11,6 +11,13 @@ export const generateLearnings = schemaTask({
 		searchResult: SearchResultSchema,
 		breadth: z.number(),
 	}),
+	retry: {
+		maxAttempts: 3,
+		factor: 1.8,
+		minTimeoutInMs: 500,
+		maxTimeoutInMs: 30_000,
+		randomize: false,
+	},
 	async run({ query, searchResult, breadth }) {
 		const { object } = await generateObject({
 			model: openai("gpt-4.1"),
