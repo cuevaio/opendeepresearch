@@ -2,12 +2,11 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject, generateText, tool } from "ai";
 import "dotenv/config";
 import fs from "node:fs";
-import Exa from "exa-js";
 import { z } from "zod";
 
-const mainModel = openai("gpt-4o");
+import { exa } from "@/lib/exa";
 
-const exa = new Exa(process.env.EXA_API_KEY);
+const mainModel = openai("gpt-4o");
 
 type SearchResult = {
 	title: string;
