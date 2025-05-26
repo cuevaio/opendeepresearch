@@ -45,6 +45,9 @@ const StatusItem = ({
 						<span>[SEARCHING]</span>
 						<span className="opacity-60">{status.query}</span>
 					</div>
+					<span className="text-xs opacity-60">
+						{new Date(status.date).toLocaleTimeString()}
+					</span>
 				</div>
 			);
 		case "search-results":
